@@ -28,15 +28,12 @@
 
 ```ruby
 # 设置用户
-Administrator@shanqingpeng MINGW64 ~
 $ git config --global user.name shanqingpeng
 
 # 设置用户邮箱
-Administrator@shanqingpeng MINGW64 ~
 $ git config --global user.email shanqingpeng0108@163.com
 
 # 查看设置的签名 (系统家目录下的 .gitconfig 文件)
-Administrator@shanqingpeng MINGW64 ~
 $ cat ~/.gitconfig
 [user]
         name = shanqingpeng
@@ -51,7 +48,6 @@ $ cat ~/.gitconfig
 
 ```ruby
 # 初始化本地库后, 会在本地库目录下生成 .git 目录 (默认是隐藏的)
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01
 $ git init
 Initialized empty Git repository in D:/docs/Markdown/my-project-01/.git/
 ```
@@ -62,7 +58,6 @@ Initialized empty Git repository in D:/docs/Markdown/my-project-01/.git/
 
 ```ruby
 # (1) 使用 git status 查看本地库状态
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git status
 On branch master   # 当前本地库是在master分支下
 
@@ -73,7 +68,6 @@ nothing to commit (create/copy files and use "git add" to track)  # 没有可以
 # (2) 在本地库中添加一个文件hello.txt
 
 # (3) 再次查看本地库状态
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git status
 On branch master
 
@@ -93,13 +87,11 @@ nothing added to commit but untracked files present (use "git add" to track)
 
 ```ruby
 # (1) 使用 git add 将文件添加到暂存区
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git add .
 warning: LF will be replaced by CRLF in hello.txt.
 The file will have its original line endings in your working directory
 
 # (2) 再次查看本地库状态
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git status
 On branch master
 
@@ -111,12 +103,10 @@ Changes to be committed:
         new file:   hello.txt
 
 # (3) 从暂存区中删除文件
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git rm --cached hello.txt
 rm 'hello.txt'
 
 # (4) 再次添加到暂存区
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git add .
 warning: LF will be replaced by CRLF in hello.txt.
 The file will have its original line endings in your working directory
@@ -128,7 +118,6 @@ The file will have its original line endings in your working directory
 
 ```ruby
 # (1) 使用 git commit -m "日志信息" 提交到本地库
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git commit -m "first commit"
 [master (root-commit) 7484fdd] first commit
  1 file changed, 1 insertion(+)
@@ -136,7 +125,6 @@ $ git commit -m "first commit"
 # 100644 是本次提交的版本号
 
 # (2) 查看本地库状态
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git status
 On branch master
 nothing to commit, working tree clean
@@ -148,11 +136,9 @@ nothing to commit, working tree clean
 
 ```ruby
 # (1) 修改文件 hello.txt
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ vim hello.txt
 
 # (2) 查看本地库状态
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git status
 On branch master
 # 未进行提交的修改 (可以使用 git add 添加到暂存区, 然后就可以提交了)
@@ -164,13 +150,11 @@ Changes not staged for commit:
 no changes added to commit (use "git add" and/or "git commit -a")
 
 # (3) 添加到暂存区
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git add .
 warning: LF will be replaced by CRLF in hello.txt.
 The file will have its original line endings in your working directory
 
 # (4) 再次提交到本地库
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git commit -m "update file"
 [master 3314454] update file
  1 file changed, 6 insertions(+)
@@ -187,7 +171,6 @@ $ git reflog
 7484fdd HEAD@{1}: commit (initial): first commit
 
 # (2) 查看版本详细日志
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git log
 commit 33144548411ac7a343b0457af59db1033955e16f (HEAD -> master)
 Author: shanqingpeng <shanqingpeng0108@163.com>
@@ -237,7 +220,6 @@ $ git remote set-url document http://39.105.104.109:9090/shanqingpeng/document.g
 
 ```ruby
 # (1) 使用 git branch -v 查看当前有哪些分支
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git branch -v
 * master 3314454 update file
 ```
@@ -248,11 +230,9 @@ $ git branch -v
 
 ````ruby
 # (1) 使用 git branch 创建分支
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git branch hot-fix
 
 # (2) 查看分支
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git branch -v
   hot-fix 3314454 update file
 * master  3314454 update file
@@ -264,12 +244,10 @@ $ git branch -v
 
 ```ruby
 # (1) 使用 git checkout 切换分支
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git checkout hot-fix
 Switched to branch 'hot-fix'
 
 # (2) 查看分支
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ git branch -v
 * hot-fix 3314454 update file
   master  3314454 update file
@@ -281,11 +259,9 @@ $ git branch -v
 
 ````ruby
 # (1) 在 hotf-ix 上修改文件
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ vim hello.txt
 
 # (2) 查看本地库状态
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ git status
 On branch hot-fix
 Changes not staged for commit:
@@ -296,19 +272,16 @@ Changes not staged for commit:
 no changes added to commit (use "git add" and/or "git commit -a")
 
 # (3) 添加到暂存区
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ git add .
 warning: LF will be replaced by CRLF in hello.txt.
 The file will have its original line endings in your working directory
 
 # (4) 提交到本地库
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ git commit -m "hot-fix first commit"
 [hot-fix 7732609] hot-fix first commit
  1 file changed, 2 insertions(+)
 
 # (5) 查看文件内容
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ cat hello.txt
 hello git
 hello git
@@ -327,12 +300,10 @@ hot-fix
 
 ```ruby
 # (1) 切换到 master 分支
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ git checkout master
 Switched to branch 'master'
 
 # (2) 把 hot-fix 分支的修改合并到 master 分支
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git merge hot-fix
 Updating 3314454..7732609
 Fast-forward
@@ -340,7 +311,6 @@ Fast-forward
  1 file changed, 2 insertions(+)
 
 # (3) 查看 hello.txt 内容
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ cat hello.txt
 hello git
 hello git
@@ -359,45 +329,36 @@ hot-fix
 
 ```ruby
 # (1) 切换到 hot-fix 分支
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git checkout hot-fix
 Switched to branch 'hot-fix'
 
 # (2) 修改 hello.txt 文件
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ vim hello.txt
 
 # (3) 添加到暂存区
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ git add .
 
 # (4) 提交到本地库
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ git commit -m "hot-fix second commit"
 [hot-fix 55b1287] hot-fix second commit
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 # (5) 切换到 master 分支
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (hot-fix)
 $ git checkout master
 Switched to branch 'master'
 
 # (6) 修改 hello.txt 文件
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ vim hello.txt
 
 # (7) 添加到暂存区
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git add .
 
 # (8) 提交到本地库
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git commit -m "master commit"
 [master 7c67770] master commit
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 # (9) 把 hot-fix 分支的修改合并到 master 分支 (出现冲突)
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ git merge hot-fix
 Auto-merging hello.txt
 CONFLICT (content): Merge conflict in hello.txt
@@ -419,16 +380,13 @@ hello git   hot-fix commit  # 此处为 hot-fix 分支的代码
 hot-fix
     
 # (11) 添加到暂存区
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master|MERGING)
 $ git add .
 
 # (12) 提交到本地库 (注意: 此时提交不能带文件名, 否则将报错)
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master|MERGING)
 $ git commit -m "resolve confict"
 [master ce561cb] resolve confict
     
 # (13) 查看解决冲突, 提交后的文件
-Administrator@shanqingpeng MINGW64 /d/docs/Markdown/my-project-01 (master)
 $ cat hello.txt
 hello git
 hello git
