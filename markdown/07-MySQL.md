@@ -187,7 +187,7 @@
   WHEN 条件2 THEN 结果2或语句2                 # (语句需要加分号)
   ...
   ELSE 结果N或语句N                           # (语句需要加分号)
-  END [CASE]                                # (放在 BEGIN END 中需要加 CASE, 放在 SELECT 中不需要加 CASE)
+  END [CASE]                                 # (放在 BEGIN END 中需要加 CASE, 放在 SELECT 中不需要加 CASE)
   ```
 
 - 案例1：输入员工id，查看员工信息
