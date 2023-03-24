@@ -611,40 +611,140 @@ SELECT AVG(salary) FROM employees;
 
 ##### （1）LEAVE
 
-- 跳出循环结构
+###### 语法格式
 
-- 跳出```BEGIN...END```结构
+```sql
+LEAVE 标记名;           # 用于跳出循环结构或```BEGIN...END```结构
+```
 
 - 案例：输入数字```end_num```， 打印从1到```end_num```，如果```end_num```>10，则最多只打印1到10
 
-  ```sql
-  DROP PROCEDURE IF EXISTS test_leave;
-  DELIMITER $$
-  CREATE PROCEDURE IF NOT EXISTS test_leave(IN end_num INT(11))
-  begin_label: BEGIN
-  	DECLARE begin_num INT(11) DEFAULT 1;
-  	while_label: WHILE end_num >= begin_num DO
-  		SELECT begin_num;
-  		SET begin_num = begin_num + 1;
-  		IF(begin_num > 10) 
-  			THEN LEAVE begin_label;
-  		END IF;
-  	END WHILE while_label;
-  END $$
-  DELIMITER ;
-  
-  CALL test_leave(100);
-  ```
+```sql
+DROP PROCEDURE IF EXISTS test_leave;
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS test_leave(IN end_num INT(11))
+begin_label: BEGIN
+	DECLARE begin_num INT(11) DEFAULT 1;
+	while_label: WHILE end_num >= begin_num DO
+		SELECT begin_num;
+		SET begin_num = begin_num + 1;
+		IF(begin_num > 10) 
+			THEN LEAVE begin_label;
+		END IF;
+	END WHILE while_label;
+END $$
+DELIMITER ;
+
+CALL test_leave(100);
+```
 
 ##### （2）ITERATE
 
-- 只能在循环结构中使用，表示跳过本次循环，继续执行下一次循环。
+###### 语法格式
+
+```sql
+ITERATE 标记名;           # 只能在循环结构中使用，表示跳过本次循环，继续执行下一次循环
+```
+
+- 案例：输入数字```num```，循环执行```num = num + 1```，如果```num < 10```，则继续执行循环，如果```num > 15```，则跳出循环
+
+```sql
+DROP PROCEDURE IF EXISTS test_iterate;
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS test_iterate(IN num INT(11))
+BEGIN
+	loop_label: LOOP
+		SET num = num + 1;
+		IF num < 10
+			THEN ITERATE loop_label;
+		ELSEIF num > 15
+			THEN LEAVE loop_label;
+		END IF;
+		SELECT 'test iterate' AS message;
+	END LOOP loop_label;
+END $$
+DELIMITER ;
+
+CALL test_iterate(1);
+```
+
+
 
 
 
 ### 四、游标和触发器
 
 #### 1、游标
+
+##### （1）游标是什么
+
+- 游标可以对结果集中每一条记录进行定位，并对记录中的数据进行操作。
+- 游标让```SQL```这种面向集合的语言有了面向过程开发的能力。
+- ```MySQL```中游标可以在```存储过程```和```函数```中使用。
+
+##### （2）游标的使用
+
+- 声明游标
+
+  ```sql
+  DECLARE 游标名 CURSOR FOR 查询语句;             # MySQL、SQL Server、DB2、MariaDB语法
+  DECLARE 游标名 CURSOR IS 查询语句;              # Oracle、PostgreSQL语法
+  ```
+
+- 打开游标
+
+  ```sql
+  OPEN 游标名;                          # 打开游标时，查询语句的结果集就会送到游标工作区，为游标逐条读取结果集中的记录做准备
+  ```
+
+- 使用游标（从游标中获取数据）
+
+  ```sql
+  FETCH 游标名 INTO 变量1, [变量2, 变量3]... # 使用游标来读取当前行，并将这一行的数据保存到变量中，游标指针指向下一行。
+  										# 注意：(1) INTO 后面的变量必须提前声明好 
+  										#	   (2) INTO 后面变量的数量和顺序必须与查询语句的结果集一致, 否则在执行存储过程或函数时会报错
+  ```
+
+- 关闭游标
+
+  ```sql
+  CLOSE 游标名;     # 游标会占用系统资源，如果不及时关闭，游标会一直保持到存储过程结束，影响系统运行效率。
+  ```
+
+- 案例：累加薪资最高的员工工资，直到达到指定金额，最后输出累加员工的数量。
+
+  ```sql
+  DROP PROCEDURE IF EXISTS test_cursor_1;
+  DELIMITER $$
+  CREATE PROCEDURE IF NOT EXISTS test_cursor_1(IN amount DOUBLE(8, 2), OUT emp_count INT(11))
+  BEGIN
+  	DECLARE emp_salary DOUBLE(8, 2) DEFAULT 0.0;
+  	DECLARE total_salary DOUBLE(8, 2) DEFAULT 0.0;
+  	# 声明游标
+  	DECLARE add_salary_cursor CURSOR FOR SELECT salary FROM employees ORDER BY salary DESC;
+  	
+  	SET emp_count = 0;
+  	# 打开游标
+  	OPEN add_salary_cursor;
+  	
+  	add_salary: WHILE total_salary < amount DO
+  		# 从游标中读取数据
+  		FETCH add_salary_cursor INTO emp_salary;
+  		SET total_salary = total_salary + emp_salary;
+  		SET emp_count = emp_count + 1;
+  	END WHILE add_salary;
+  	
+  	# 关闭游标
+  	CLOSE add_salary_cursor;
+  END $$
+  DELIMITER ;
+  
+  CALL test_cursor_1(100000, @cursor_emp_count);
+  
+  SELECT @cursor_emp_count AS 员工数量;
+  ```
+
+  
 
 #### 2、触发器
 
