@@ -415,7 +415,7 @@ CALL test_loop_4(1, 1000);
 
 ```sql
 [while_label:] WHILE 循环条件 DO             # [while_label:]是WHILE循环结构的名称, 可以省略
-循环体
+	循环体
 END WHILE [while_label];
 ```
 
@@ -496,13 +496,149 @@ SELECT @down_salary_num AS 降薪次数;
 SELECT AVG(salary) FROM employees;
 ```
 
+
+
 ##### （3）REPEAT
+
+###### 语法格式
+
+```sql
+[repeat_label:] REPEAT
+	循环体
+UNTIL 循环结束的条件表达式
+END REPEAT [repeat_label]
+```
+
+- 案例1：输入工号```emp_id```、打印次数```num```，循环打印```num```次姓名
+
+```sql
+DROP PROCEDURE IF EXISTS test_repeat_1;
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS test_repeat_1(IN emp_id INT(11), IN num INT(11))
+BEGIN
+	DECLARE emp_name VARCHAR(25);
+	
+	SELECT last_name INTO emp_name FROM employees WHERE employee_id = emp_id;
+	
+	repeat_label: REPEAT
+		SELECT emp_name AS 姓名;
+		SET num = num - 1;
+	UNTIL num <= 0
+	END REPEAT repeat_label;
+END $$
+DELIMITER ;
+
+CALL test_repeat_1(100, 3);
+```
+
+- 案例2：输入目标金额，涨薪比例```rate```，持续涨薪直到目标金额，工资```2W```以上的员工不涨薪，输出涨薪次数
+
+```sql
+DROP PROCEDURE IF EXISTS test_repeat_2;
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS test_repeat_2(IN amount INT(11), IN rate DOUBLE(8, 2), OUT num INT(11))
+BEGIN
+	DECLARE emp_avg_salary DOUBLE(8, 2) DEFAULT 0.0;
+	
+	SET num = 0;
+	
+	SELECT AVG(salary) INTO emp_avg_salary FROM employees;
+	
+	add_salary: REPEAT
+		IF emp_avg_salary >= amount
+			THEN LEAVE add_salary;
+		END IF;
+		
+		UPDATE employees SET salary = salary + salary * rate WHERE salary < 20000;
+		SELECT AVG(salary) INTO emp_avg_salary FROM employees;
+		SET num = num + 1;
+	UNTIL emp_avg_salary >= amount
+	END REPEAT add_salary;	
+END $$
+DELIMITER ;
+
+CALL test_repeat_2(12000, 0.15, @repeat_add_salary_num);
+
+SELECT @repeat_add_salary_num AS 涨薪次数;
+
+SELECT AVG(salary) FROM employees;
+```
+
+- 案例3：输入目标金额```amount```，降薪比例```rate```，持续降薪直到目标金额，工资```5K```以下的员工不降薪，输出降薪次数
+
+```sql
+DROP PROCEDURE IF EXISTS test_repeat_3;
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS test_repeat_3(IN amount INT(11), IN rate DOUBLE(8, 2), OUT num INT(11))
+BEGIN
+	DECLARE emp_avg_salary DOUBLE(8, 2) DEFAULT 0.0;
+	
+	SET num = 0;
+	
+	SELECT AVG(salary) INTO emp_avg_salary FROM employees;
+	
+	down_salary: REPEAT
+		IF emp_avg_salary <= amount
+			THEN LEAVE down_salary;
+		END IF;
+		
+		UPDATE employees SET salary = salary - salary * rate WHERE salary > 5000;
+		SELECT AVG(salary) INTO emp_avg_salary FROM employees;
+		SET num = num + 1;
+	UNTIL emp_avg_salary <= amount
+	END REPEAT down_salary;	
+END $$
+DELIMITER ;
+
+CALL test_repeat_3(6000, 0.2, @repeat_down_salary_num);
+
+SELECT @repeat_down_salary_num AS 降薪次数;
+
+SELECT AVG(salary) FROM employees;
+```
+
+##### （4）总结
+
+- LOOP：一般用于实现简单的 "死" 循环。
+
+- WHILE：先判断条件，满足条件才执行循环体。
+
+- REPEAT：先执行循环体，再判断（满足条件就结束循环）。
+
+  
 
 #### 3、跳转语句
 
 ##### （1）LEAVE
 
+- 跳出循环结构
+
+- 跳出```BEGIN...END```结构
+
+- 案例：输入数字```end_num```， 打印从1到```end_num```，如果```end_num```>10，则最多只打印1到10
+
+  ```sql
+  DROP PROCEDURE IF EXISTS test_leave;
+  DELIMITER $$
+  CREATE PROCEDURE IF NOT EXISTS test_leave(IN end_num INT(11))
+  begin_label: BEGIN
+  	DECLARE begin_num INT(11) DEFAULT 1;
+  	while_label: WHILE end_num >= begin_num DO
+  		SELECT begin_num;
+  		SET begin_num = begin_num + 1;
+  		IF(begin_num > 10) 
+  			THEN LEAVE begin_label;
+  		END IF;
+  	END WHILE while_label;
+  END $$
+  DELIMITER ;
+  
+  CALL test_leave(100);
+  ```
+
 ##### （2）ITERATE
+
+- 只能在循环结构中使用，表示跳过本次循环，继续执行下一次循环。
 
 
 
