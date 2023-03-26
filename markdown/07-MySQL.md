@@ -2,29 +2,219 @@
 
 #### 1、用户管理
 
+##### （1）查看所有用户
+
+```sql
+SELECT * FROM mysql.`user`;
+```
+
+##### （2）创建用户
+
+```sql
+# CREATE USER '用户名'@'主机地址' IDENTIFIED BY '密码';
+CREATE USER 'shanqingpeng'@'%' IDENTIFIED BY '123456';
+```
+
+##### （3）修改用户
+
+```sql
+# 修改用户的允许登录地址为localhost
+UPDATE USER SET HOST = 'localhost' WHERE `User` = 'shanqingpeng' AND `Host` = '%';
+
+# 修改用户的允许登录地址为任意主机
+UPDATE USER SET HOST = '%' WHERE `User` = 'shanqingpeng' AND `Host` = 'localhost';
+
+# 刷新权限
+FLUSH PRIVILEGES;
+
+
+```
+
+##### （4）删除用户
+
+```sql
+# 1、推荐使用这种方式
+DROP USER 'shanqingpeng'@'%';
+
+# 2、不推荐使用这种方式，有残留信息保存
+DELETE FROM mysql.`user` WHERE `user` = 'shanqingpeng' AND `Host` = '%';
+
+# 刷新权限
+FLUSH PRIVILEGES;
+```
+
+##### （5）修改密码
+
+```sql
+# （1）修改当前用户密码, 方式1
+ALTER USER USER() IDENTIFIED BY '123456';
+
+# （2）修改当前用户密码, 方式2
+SET PASSWORD = '456123';
+
+# （3）修改其他用户密码, 方式1（需要当前用户有改密码的权限）
+ALTER USER 'shanqingpeng'@'%' IDENTIFIED BY '456123';
+
+# （4）修改其他用户密码, 方式2（需要当前用户有改密码的权限）
+SET PASSWORD FOR 'shanqingpeng'@'%'='abc123';
+```
+
+
+
 #### 2、权限管理
 
+##### （1）查看权限
+
+```sql
+# 1、查看系统所有权限
+SHOW PRIVILEGES;
+
+# 2、查看当前用户的权限，方式1
+SHOW GRANTS;
+
+# 3、查看当前用户的权限，方式2
+SHOW GRANTS FOR CURRENT_USER;
+
+# 4、查看当前用户的权限，方式3
+SHOW GRANTS FOR CURRENT_USER();
+
+# 5、查看指定用户的权限
+SHOW GRANTS FOR 'shanqingpeng'@'%';
+```
+
+##### （2）赋予权限
+
+```sql
+# 格式: GRANT 权限名1, 权限名2, ... ON 数据库名.表名 TO 用户名@主机地址
+
+# 1、赋予指定权限
+GRANT INSERT, DELETE, UPDATE, SELECT ON mysql_test.* TO 'shanqingpeng'@'%';
+
+# 2、赋予所有权限 (不包括grant权限)
+GRANT ALL PRIVILEGES ON *.* TO 'shanqingpeng'@'%';
+
+# 3、赋予所有权限 (包括grant权限)
+GRANT ALL PRIVILEGES ON *.* TO 'shanqingpeng'@'%' WITH GRANT OPTION;
+
+# 刷新权限
+FLUSH PRIVILEGES;
+
+```
+
+##### （3）收回权限
+
+```sql
+# 格式: REVOKE 权限名1, 权限名2, ... ON 数据库名.表名 FROM 用户名@主机地址
+
+# 1、收回指定权限
+REVOKE SELECT ON *.* FROM 'shanqingpeng'@'%';
+
+REVOKE SELECT, INSERT, UPDATE, DELETE ON mysql_test.* FROM 'shanqingpeng'@'%';
+
+# 2、收回所有权限
+REVOKE ALL PRIVILEGES ON *.* FROM 'shanqingpeng'@'%';
+
+# 刷新权限
+FLUSH PRIVILEGES;
+```
 
 
-### 二、角色管理
+
+### 二、角色管理（```MySQL8.0```新特性）
 
 #### 1、创建角色
 
+```sql
+# 格式：CREATE ROLE 角色名@主机地址
+
+# 新创建的角色, 默认没有激活
+CREATE ROLE 'manager'@'%';
+
+CREATE ROLE 'developer'@'%';
+```
+
 #### 2、给角色赋予权限
+
+```sql
+# 格式: GRANT 权限名1, 权限名2, ... ON 数据库名.表名 TO 角色名@主机地址;
+
+GRANT SELECT ON mysql_test.* TO 'manager'@'%';
+
+GRANT SELECT ON mysql_test.* TO 'developer'@'%';
+```
 
 #### 3、查看角色的权限
 
+```sql
+# 格式: SHOW GRANT FOR 角色名@主机地址;
+
+SHOW GRANTS FOR 'manager'@'%';
+
+SHOW GRANTS FOR 'developer'@'%';
+```
+
 #### 4、回收角色的权限
+
+```sql
+# 格式: REVOKE 权限名1, 权限名2, ... ON 数据库名.表名 FROM 角色名@主机地址;
+
+REVOKE SELECT ON mysql_test.* FROM 'manager'@'%';
+```
 
 #### 5、给用户赋予角色
 
+```sql
+# 格式: GRANT 角色名@主机地址 TO 用户名@主机地址
+
+GRANT 'developer'@'%' TO 'shanqingpeng'@'%';
+```
+
 #### 6、激活角色
+
+```sql
+# 1、查看当前角色是否激活, NONE表示没有激活
+SELECT current_role();
+
+# 2、激活角色, 方式1
+SET DEFAULT ROLE 'developer'@'%' TO 'shanqingpeng'@'%';
+
+# 2、激活角色, 方式2
+SHOW VARIABLES LIKE 'activate_all_roles_on_login';
+
+SET GLOBAL activate_all_roles_on_login = ON;
+```
 
 #### 7、撤销用户的角色
 
+```sql
+# 格式: REVOKE 角色名@主机地址 FROM 用户名@主机地址;
+
+REVOKE 'developer'@'%' FROM 'shanqingpeng'@'%';
+```
+
 #### 8、设置强制角色（默认角色）
 
+```sql
+# 即：给每个创建的用户赋予一个默认的角色，不需要手动设置。强制角色无法revoke或drop
+# 1、服务启动前设置, 方式1
+[mysqld]
+mandatory_roles='role1@localhost, role2@%'
+
+# 2、运行时设置, 方式2
+# (1) 重启后仍然有效
+SET PERSIST mandatory_roles = 'role1@localhost, role2@%';
+
+# (2) 重启后失效
+SET GLOBAL mandatory_roles = 'role1@localhost, role2@%';
+```
+
 #### 9、删除角色
+
+```sql
+DROP ROLE 'manager'@'%';
+```
+
+
 
 
 
@@ -681,6 +871,7 @@ CALL test_iterate(1);
 - 游标可以对结果集中每一条记录进行定位，并对记录中的数据进行操作。
 - 游标让```SQL```这种面向集合的语言有了面向过程开发的能力。
 - ```MySQL```中游标可以在```存储过程```和```函数```中使用。
+- 在使用游标的过程中，会对数据进行加锁，这样会影响并发量比较大的业务，还会消耗系统资源，造成内存不足。
 
 ##### （2）游标的使用
 
@@ -701,8 +892,9 @@ CALL test_iterate(1);
 
   ```sql
   # 使用游标来读取当前行，并将这一行的数据保存到变量中，游标指针指向下一行。
-  # 注意：(1) INTO 后面的变量必须提前声明好 
-  #	 (2) INTO 后面变量的数量和顺序必须与查询语句的结果集一致, 否则在执行存储过程或函数时会报错
+  # 注意：
+  # (1) INTO 后面的变量必须提前声明好 
+  # (2) INTO 后面变量的数量和顺序必须与查询语句的结果集一致, 否则在执行存储过程或函数时会报错
   FETCH 游标名 INTO 变量1, [变量2, 变量3]... 
   ```
 
@@ -749,9 +941,111 @@ CALL test_iterate(1);
 
 #### 2、触发器
 
+##### （1）触发器是什么
+
+- 触发器是由事件来触发某个操作，这些事件包括```INSERT、UPDATE、DELETE```事件。
+- 只有表支持触发器，视图和临时表不支持触发器。
+
+
+
+##### （2）创建触发器
+
+- 语法结构
+
+  ```sql
+  # 1、触发器名: 建议数据库唯一
+  # 2、BEFORE | AFTER: 表示触发器执行的时间
+  # 3、INSERT | UPDATE | DELETE: 表示触发的事件 (即当出现什么事件时, 才执行触发器)
+  # 4、表名: 触发器作用的表
+  # 5、触发器执行的语句块: 可以是单条SQL语句, 也可以是由BEGIN...END组成的复合语句块.
+  CREATE TRIGGER 触发器名
+  {BEFORE | AFTER} {INSERT | UPDATE | DELETE} ON 表名
+  FOR EACH ROW
+  触发器执行的语句块;
+  ```
+
+- 案例1：```employees```表插入数据时，插入一条数据到```employees_log```表
+
+  ```sql
+  DROP TRIGGER IF EXISTS employees_trigger_1;
+  CREATE TRIGGER IF NOT EXISTS employees_trigger_1
+  BEFORE INSERT ON employees
+  FOR EACH ROW 
+  INSERT INTO employees_log(message, log_time) VALUES('新增了一个员工', NOW());
+  
+  INSERT INTO employees(employee_id, first_name, last_name, email, phone_number, hire_date, job_id, salary, commission_pct, manager_id, department_id)
+  VALUES(207, 'Takaki', 'Shan', 'takaki@outlook.com', '13800138000', DATE_SUB(NOW(), INTERVAL 3 YEAR), 'PR_REP', 20000.00, 0.15, 100, 90);
+  
+  SELECT * FROM employees;
+  
+  SELECT * FROM employees_log;
+  ```
+
+- 案例2：```employees```表插入数据之前，如果员工的工资高于领导的工资，则报错，不允许插入
+
+  ```sql
+  DROP TRIGGER IF EXISTS employees_trigger_2;
+  DELIMITER $$
+  CREATE TRIGGER IF NOT EXISTS employees_trigger_2
+  BEFORE INSERT ON employees
+  FOR EACH ROW
+  BEGIN
+  	DECLARE manager_salary DOUBLE(8, 2);
+  	SELECT salary INTO manager_salary FROM employees WHERE employee_id = NEW.manager_id;
+  	
+  	IF NEW.salary > manager_salary
+  		THEN SIGNAL SQLSTATE 'HY000' SET MESSAGE_TEXT = '员工工资不能高于领导的工资';
+  	END IF;
+  END $$
+  DELIMITER ;
+  
+  INSERT INTO employees(employee_id, first_name, last_name, email, phone_number, hire_date, job_id, salary, commission_pct, manager_id, department_id)
+  VALUES(208, 'Takaki', 'Lee', 'takakiLee@outlook.com', '13900139000', DATE_SUB(NOW(), INTERVAL 5 YEAR), 'PR_REP', 20000.00, 0.15, 100, 90);
+  
+  SELECT * FROM employees;
+  ```
+
+  
+
+##### （3）查看和删除触发器
+
+- 查看触发器
+
+  ```sql
+  SHOW TRIGGERS;                                     # 查看当前数据库所有触发器
+  
+  SHOW CREATE TRIGGER test_trigger_1;                # 查看触发器的创建语句
+  
+  SELECT * FROM information_schema.`TRIGGERS`;       # 从information_schema中查看
+  ```
+
+- 删除触发器
+
+  ```sql
+  DROP TRIGGER IF EXISTS 触发器名;
+  ```
+
+  
+
+##### （4）触发器的优缺点
+
+- 优点：
+
+  - 可以确保数据的完整性
+
+  - 可以帮助我们记录操作日志
+
+  - 可以在操作数据前，进行数据合法性校验
+
+- 缺点：
+  - 最大的缺点就是可读性差
+  - 相关数据的变更，可能会导致触发器出错
+
 
 
 ### 五、窗口函数（```MySQL``` 8.0新特性）
+
+
 
 
 
