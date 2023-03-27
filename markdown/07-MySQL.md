@@ -2,16 +2,23 @@
 
 #### 1、用户管理
 
-##### （1）查看所有用户
+##### （1）查看用户
 
 ```sql
+# 1、查看所有用户
 SELECT * FROM mysql.`user`;
+
+# 2、根据用户名和主机地址查找用户
+SELECT * FROM mysql.`user` WHERE USER = 'shanqingpeng' AND HOST = '%';
 ```
 
 ##### （2）创建用户
 
 ```sql
-# CREATE USER '用户名'@'主机地址' IDENTIFIED BY '密码';
+# 1、格式 
+CREATE USER '用户名'@'主机地址' IDENTIFIED BY '密码';
+
+# 2、案例
 CREATE USER 'shanqingpeng'@'%' IDENTIFIED BY '123456';
 ```
 
@@ -26,8 +33,6 @@ UPDATE USER SET HOST = '%' WHERE `User` = 'shanqingpeng' AND `Host` = 'localhost
 
 # 刷新权限
 FLUSH PRIVILEGES;
-
-
 ```
 
 ##### （4）删除用户
@@ -46,16 +51,16 @@ FLUSH PRIVILEGES;
 ##### （5）修改密码
 
 ```sql
-# （1）修改当前用户密码, 方式1
+# (1) 修改当前用户密码, 方式1
 ALTER USER USER() IDENTIFIED BY '123456';
 
-# （2）修改当前用户密码, 方式2
+# (2) 修改当前用户密码, 方式2
 SET PASSWORD = '456123';
 
-# （3）修改其他用户密码, 方式1（需要当前用户有改密码的权限）
+# (3) 修改其他用户密码, 方式1（需要当前用户有改密码的权限）
 ALTER USER 'shanqingpeng'@'%' IDENTIFIED BY '456123';
 
-# （4）修改其他用户密码, 方式2（需要当前用户有改密码的权限）
+# (4) 修改其他用户密码, 方式2（需要当前用户有改密码的权限）
 SET PASSWORD FOR 'shanqingpeng'@'%'='abc123';
 ```
 
@@ -85,33 +90,35 @@ SHOW GRANTS FOR 'shanqingpeng'@'%';
 ##### （2）赋予权限
 
 ```sql
-# 格式: GRANT 权限名1, 权限名2, ... ON 数据库名.表名 TO 用户名@主机地址
+# 1、格式
+GRANT 权限名1, 权限名2, ... ON 数据库名.表名 TO 用户名@主机地址;
 
-# 1、赋予指定权限
+# 2、案例1: 赋予指定权限
 GRANT INSERT, DELETE, UPDATE, SELECT ON mysql_test.* TO 'shanqingpeng'@'%';
 
-# 2、赋予所有权限 (不包括grant权限)
+# 3、案例2: 赋予所有权限 (不包括grant权限)
 GRANT ALL PRIVILEGES ON *.* TO 'shanqingpeng'@'%';
 
-# 3、赋予所有权限 (包括grant权限)
+# 4、案例3: 赋予所有权限 (包括grant权限)
 GRANT ALL PRIVILEGES ON *.* TO 'shanqingpeng'@'%' WITH GRANT OPTION;
 
 # 刷新权限
 FLUSH PRIVILEGES;
-
 ```
 
 ##### （3）收回权限
 
 ```sql
-# 格式: REVOKE 权限名1, 权限名2, ... ON 数据库名.表名 FROM 用户名@主机地址
+# 1、格式
+REVOKE 权限名1, 权限名2, ... ON 数据库名.表名 FROM 用户名@主机地址;
 
-# 1、收回指定权限
+# 2、案例1: 收回指定权限
 REVOKE SELECT ON *.* FROM 'shanqingpeng'@'%';
 
+# 3、案例2: 收回指定权限
 REVOKE SELECT, INSERT, UPDATE, DELETE ON mysql_test.* FROM 'shanqingpeng'@'%';
 
-# 2、收回所有权限
+# 4、案例3: 收回所有权限
 REVOKE ALL PRIVILEGES ON *.* FROM 'shanqingpeng'@'%';
 
 # 刷新权限
@@ -125,47 +132,59 @@ FLUSH PRIVILEGES;
 #### 1、创建角色
 
 ```sql
-# 格式：CREATE ROLE 角色名@主机地址
+# 1、格式
+CREATE ROLE 角色名@主机地址;
 
-# 新创建的角色, 默认没有激活
+# 2、案例1: 新创建的角色, 默认没有激活
 CREATE ROLE 'manager'@'%';
 
+# 3、案例2: 新创建的角色, 默认没有激活
 CREATE ROLE 'developer'@'%';
 ```
 
 #### 2、给角色赋予权限
 
 ```sql
-# 格式: GRANT 权限名1, 权限名2, ... ON 数据库名.表名 TO 角色名@主机地址;
+# 1、格式
+GRANT 权限名1, 权限名2, ... ON 数据库名.表名 TO 角色名@主机地址;
 
+# 2、案例1
 GRANT SELECT ON mysql_test.* TO 'manager'@'%';
 
+# 3、案例2
 GRANT SELECT ON mysql_test.* TO 'developer'@'%';
 ```
 
 #### 3、查看角色的权限
 
 ```sql
-# 格式: SHOW GRANT FOR 角色名@主机地址;
+# 1、格式
+SHOW GRANT FOR 角色名@主机地址;
 
+# 2、案例1
 SHOW GRANTS FOR 'manager'@'%';
 
+# 3、案例2
 SHOW GRANTS FOR 'developer'@'%';
 ```
 
 #### 4、回收角色的权限
 
 ```sql
-# 格式: REVOKE 权限名1, 权限名2, ... ON 数据库名.表名 FROM 角色名@主机地址;
+# 1、格式
+REVOKE 权限名1, 权限名2, ... ON 数据库名.表名 FROM 角色名@主机地址;
 
+# 2、案例
 REVOKE SELECT ON mysql_test.* FROM 'manager'@'%';
 ```
 
 #### 5、给用户赋予角色
 
 ```sql
-# 格式: GRANT 角色名@主机地址 TO 用户名@主机地址
+# 1、格式
+GRANT 角色名@主机地址 TO 用户名@主机地址;
 
+# 2、案例
 GRANT 'developer'@'%' TO 'shanqingpeng'@'%';
 ```
 
@@ -187,12 +206,14 @@ SET GLOBAL activate_all_roles_on_login = ON;
 #### 7、撤销用户的角色
 
 ```sql
-# 格式: REVOKE 角色名@主机地址 FROM 用户名@主机地址;
+# 1、格式
+REVOKE 角色名@主机地址 FROM 用户名@主机地址;
 
+# 2、案例
 REVOKE 'developer'@'%' FROM 'shanqingpeng'@'%';
 ```
 
-#### 8、设置强制角色（默认角色）
+#### 8、设置强制角色
 
 ```sql
 # 即：给每个创建的用户赋予一个默认的角色，不需要手动设置。强制角色无法revoke或drop
@@ -211,10 +232,12 @@ SET GLOBAL mandatory_roles = 'role1@localhost, role2@%';
 #### 9、删除角色
 
 ```sql
+# 1、格式
+DROP ROLE 角色名@主机地址;
+
+# 2、案例
 DROP ROLE 'manager'@'%';
 ```
-
-
 
 
 
@@ -228,9 +251,9 @@ DROP ROLE 'manager'@'%';
 
 ```sql
 IF 表达式1 THEN 操作1
-[ELSEIF 表达式2 THEN 操作2]
+[ELSEIF 表达式2 THEN 操作2]         # [] 表示可以省略
 ...
-[ELSE 操作n]
+[ELSE 操作n]                       # [] 表示可以省略
 END IF
 ```
 
