@@ -969,8 +969,6 @@ CALL test_iterate(1);
 - 触发器是由事件来触发某个操作，这些事件包括```INSERT、UPDATE、DELETE```事件。
 - 只有表支持触发器，视图和临时表不支持触发器。
 
-
-
 ##### （2）创建触发器
 
 - 语法结构
@@ -1028,7 +1026,6 @@ CALL test_iterate(1);
   SELECT * FROM employees;
   ```
 
-  
 
 ##### （3）查看和删除触发器
 
@@ -1048,7 +1045,6 @@ CALL test_iterate(1);
   DROP TRIGGER IF EXISTS 触发器名;
   ```
 
-  
 
 ##### （4）触发器的优缺点
 
@@ -1066,7 +1062,163 @@ CALL test_iterate(1);
 
 
 
-### 五、窗口函数（```MySQL``` 8.0新特性）
+### 五、变量
+
+#### 1、简介
+
+- 在```MySQL```数据库中，变量分为```系统变量```和```用户变量```。
+- 在存储过程和函数中，可以使用变量来存储或计算中间结果数据，或者输出最终结果。
+
+#### 2、系统变量
+
+##### （1）简介
+
+- 由系统定义，不是用户定义，属于服务器层面。
+- 启动```MySQL```服务，生成```MySQL```实例期间，```MySQL```将为系统变量赋值，这些变量定义了当前```MySQL```实例的属性、特征。
+
+##### （2）分类
+
+- 全局系统变量：需要加```GLOBAL```关键字。
+- 会话系统变量：需要加```SESSION```关键字，如果不写关键字，默认是会话系统变量。
+
+##### （3）区别
+
+- 全局系统变量针对所有会话都有效，但是不能夸重启，即修改全局系统变量之后，重启```MySQL```服务后失效。
+- 会话系统变量仅针对当前会话有效。当前会话期间，修改会话系统变量，不会影响其他会话。
+
+##### （4）注意
+
+- 有些系统变量，只能是全局系统变量（GLOBAL），例如```max_connections``` 服务器最大连接数
+
+  ```sql
+  SHOW GLOBAL VARIABLES LIKE '%max_connections%';
+
+- 有些系统变量，只能是会话系统变量（SESSION），例如```pseudo_thread_id``` 标记当前会话的```MySQL```连接ID
+
+  ```sql
+  SHOW SESSION VARIABLES LIKE '%pseudo_thread_id%';
+  ```
+
+- 有些系统变量，既是全局的，又是会话的，例如```character_set_client ``` 客户端字符集
+
+  ```sql
+  SHOW GLOBAL VARIABLES LIKE '%character_set_client%';
+  
+  SHOW SESSION VARIABLES LIKE '%character_set_client%';
+  ```
+
+##### （5）全局系统变量
+
+```sql
+# 1、查看所有全局系统变量
+SHOW GLOBAL VARIABLES;
+
+# 2、查看指定全局系统变量, 方式1
+SHOW GLOBAL VARIABLES LIKE '%max_connections%';
+
+# 3、查看指定全局系统变量, 方式2
+SELECT @@global.max_connections;
+
+# 4、修改全局系统变量, 方式1
+SET GLOBAL max_connections = 171;
+
+# 5、修改全局系统变量, 方式2
+SET @@global.max_connections = 181;
+```
+
+##### （6）会话系统变量
+
+```sql
+# 1、查看所有会话系统变量, 方式1
+SHOW VARIABLES;
+
+# 2、查看所有会话系统变量, 方式2
+SHOW SESSION VARIABLES;
+
+# 3、查看指定会话系统变量, 方式1
+SHOW SESSION VARIABLES LIKE '%pseudo_thread_id%';
+
+# 4、查看指定会话系统变量, 方式2
+SELECT @@session.pseudo_thread_id;
+
+# 5、修改系统变量, 方式1
+SET @@session.pseudo_thread_id = 37;
+
+# 6、修改系统变量, 方式2
+SET SESSION pseudo_thread_id = 47;
+```
+
+#### 3、用户变量
+
+##### （1）简介
+
+- 用户变量是由用户自己定义的变量，作为```MySQL```编码的规范，用户变量需要以一个```@```开头。
+
+##### （2）分类
+
+- 会话用户变量：作用域和会话变量一样，只对当前会话有效。
+- 局部变量：只在```BEGIN...END```语句块中有效，只能在存储过程和函数中使用。
+
+##### （3）会话用户变量
+
+```sql
+# 1、定义会话用户变量, 格式1
+SET @变量名 = 值;
+SET @变量名 := 值;
+
+# 2、案例1
+SET @user_name_1 = 'sqp1';
+SET @user_name_2 := 'sqp2';
+
+# 3、定义会话用户变量, 格式2
+SELECT @变量名 := 字段或结果 FROM employees;
+SELECT 字段或结果 INTO @变量名 FROM employees;
+
+# 4、案例2
+SELECT @max_salary_1 := MAX(salary) FROM employees;
+SELECT MAX(salary) INTO @max_salary_2 FROM employees;
+
+# 5、查看用户变量, 格式
+SELECT @变量名;
+
+# 6、案例3
+SELECT @user_name_1;
+SELECT @user_name_2;
+SELECT @max_salary_1;
+SELECT @max_salary_2;
+```
+
+##### （4）局部变量
+
+```sql
+# 1、声明局部变量, 格式
+DECLARE 变量名 类型 [DEFAULT 默认值];
+
+# 2、案例1
+DECLARE emp_name VARCHAR(50);
+
+# 3、修改局部变量, 格式
+SET 变量名 = 值;
+SET 变量名 := 值;
+SELECT 字段名 INTO 变量名 FROM 表名 [WHERE 条件];
+
+# 4、案例2
+SET emp_name = 'Tom1';
+SET emp_name := 'Tom2';
+SELECT last_name INTO emp_name FROM employees WHERE employee_id = 100;
+```
+
+
+
+### 六、存储过程
+
+
+
+### 七、函数
+
+
+
+### 八、窗口函数（```MySQL``` 8.0新特性）
 
 
 
