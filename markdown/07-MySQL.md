@@ -1212,11 +1212,386 @@ SELECT last_name INTO emp_name FROM employees WHERE employee_id = 100;
 
 ### 六、存储过程
 
+#### 1、存储过程简介
+
+- 存储过程一种数据库对象，由一系列的预先编译好的```SQL```语句封装而成。
+- 存储在服务器端，当需要执行存储过程的时候，客户端向服务器端发送调用请求，服务器端就会执行存储过程中的全部```SQL```
+
+#### 2、创建存储过程
+
+##### （1）格式
+
+```sql
+CREATE PROCEDURE [IF NOT EXISTS] 存储过程名(IN | OUT | INOUT 参数名 参数类型, ...)
+[characteristics...]
+BEGIN
+ # 存储过程体: 可以有多条SQL语句, 如果仅有一条SQL语句, 则可以省略BEGIN和END
+END ;
+
+# 1、IN: 输入型参数, 存储过程体只是读取这个参数, 如果参数没有声明种类, 则默认是IN
+# 2、OUT: 输出型参数, 存储过程体中可以修改这个参数的值, 存储过程执行完成之后, 客户端或应用程序可以读取这个参数的值
+# 3、INOUT: 既是输入型参数, 又是输出型参数
+# 4、参数类型: 可以是MySQL数据库中的任意类型
+# 5、characteristics: 指定存储过程的特征, 其取值信息如下:
+LANGUAGE SQL
+| [NOT] DETERMINISTIC
+| {CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }
+| SQL SECURITY {DEFINER | INVOKER}
+| COMMENT '注释信息'
+
+# (1) LANGUAGE SQL: 表示存储过程体是由SQL语句组成的, 当前系统支持的语言为SQL
+# (2) [NOT] DETERMINISTIC: 表示存储过程执行的结果是否确定 (即相同输入是否得到相同结果)
+# (3) {CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }: 
+#     表示子程序使用SQL语句的限制, 包含SQL | 不包含SQL | 包含读取数据的SQL | 包含修改数据的SQL
+# (4) SQL SECURITY {DEFINER | INVOKER}: 指定哪些用户可以执行当前存储过程, DEFINER: 创建者, INVOKER: 有权限用户
+# (5) COMMENT: 注释信息, 可以用于描述当前存储过程
+```
+
+##### （2）设置新的结束标记
+
+```sql
+# 1、原因: MySQL默认的语句结束符号为分号(;), 避免因为存储过程体中SQL语句的分号(;)导致创建存储过程出错。
+
+# 2、格式
+DELIMITER 新的结束标记
+
+# 3、案例
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS test_proc_1()
+BEGIN
+	SELECT * FROM employees;
+END $$
+DELIMITER ;   # 存储过程创建完成后, 再恢复默认结束符
+```
+
+##### （3）存储过程体
+
+```sql
+# 1、存储过程体中可以有多条SQL语句, 也可以有复杂的SQL语句
+
+# 2、存储过程体, 以BEGIN开始, END结束, 中间包含一条或多条语句, 每条语句都以分号结束(;)
+
+# 3、使用DECALRE声明变量, 需要在使用之前声明
+DECLARE emp_name VARCHAR(50);
+
+# 4、使用SET为变量赋值
+SET emp_name = 'Tom';
+
+# 5、把从表中查询的结果, 赋值给变量
+SELECT last_name INTO emp_name FROM employees WHERE employee_id = 100;
+```
+
+##### （4）案例
+
+- 1、无参数：查询所有员工信息
+
+```sql
+DROP PROCEDURE IF EXISTS test_proc_1;
+
+DELIMITER $$
+CREATE PROCEDURE test_proc_1()
+BEGIN
+	SELECT * FROM employees;
+END $$
+DELIMITER ;
+```
+
+- 2、带OUT参数：查询员工最高工资是多少
+
+```sql
+DROP PROCEDURE IF EXISTS test_proc_2;
+
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS test_proc_2(OUT max_salary DOUBLE(8, 2))
+BEGIN
+	SELECT MAX(salary) INTO max_salary FROM employees;
+END $$
+DELIMITER ;
+```
+
+- 3、带IN、OUT参数：输入员工id，输出员工工资
+
+```sql
+DROP PROCEDURE IF EXISTS test_proc_3;
+
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS test_proc_3(IN emp_id INT, OUT emp_salary DOUBLE(8, 2))
+BEGIN
+	SELECT salary INTO emp_salary FROM employees WHERE employee_id = emp_id;
+END $$
+DELIMITER ;
+```
+
+- 4、带```INOUT```参数：输入员工姓名，输出员工领导姓名
+
+```sql
+DROP PROCEDURE IF EXISTS test_proc_4;
+
+DELIMITER $$
+CREATE PROCEDURE IF NOT EXISTS test_proc_4(INOUT emp_name VARCHAR(25))
+BEGIN
+	SELECT last_name INTO emp_name
+	FROM employees WHERE employee_id = (SELECT manager_id FROM employees WHERE last_name = emp_name);
+END $$
+DELIMITER ;
+```
+
+#### 3、调用存储过程
+
+```sql
+# 1、格式
+CALL 存储过程名(参数, ...);
+
+# 2、案例1
+CALL test_proc_1();
+
+# 3、案例2
+CALL test_proc_2(@max_salary);
+SELECT @max_salary AS 最高工资;
+
+# 4、案例3
+CALL test_proc_3(100, @emp_salary);
+SELECT @emp_salary AS 员工工资;
+
+# 5、案例4
+SET @emp_name = 'Pataballa';
+CALL test_proc_4(@emp_name);
+SELECT @emp_name AS 领导姓名;
+```
+
+#### 4、查看和修改存储过程
+
+##### （1）查看
+
+```sql
+# 1、查看存储过程的创建信息, 格式
+SHOW CREATE PROCEDURE 存储过程名;
+
+# 2、案例
+SHOW CREATE PROCEDURE test_proc_1;
+
+# 3、查看所有数据库下的存储过程的状态信息
+SHOW PROCEDURE STATUS;
+
+# 4、查看指定存储过程的状态信息
+SHOW PROCEDURE STATUS LIKE 'test_proc_1';
+
+# 5、查看某个数据库下所有的存储过程状态信息
+SHOW PROCEDURE STATUS WHERE db = 'mysql_test';
+
+# 6、从information_schema.Routines中查看存储过程的信息, 格式
+SELECT * FROM information_schema.Routines WHERE ROUTINE_NAME = 存储过程名 [AND ROUTINE_TYPE = 'PROCEDURE'];
+
+# 7、从information_schema.Routines中查看存储过程的信息, 案例
+SELECT * FROM information_schema.Routines WHERE ROUTINE_NAME = 'test_proc_1' AND ROUTINE_TYPE = 'PROCEDURE';
+```
+
+##### （2）修改
+
+```sql
+# 1、修改存储过程, 不影响存储过程的功能, 只是修改相关特性, 格式
+ALTER PROCEDURE 存储过程名 [characteristics...];
+
+# 2、修改存储过程, 案例
+ALTER PROCEDURE test_proc_1
+SQL SECURITY INVOKER                      # 存储过程调用权限修改为有权限者
+COMMENT '查询所有员工信息';                  # 修改存储过程的注释信息
+
+# 3、查看存储过程状态
+SHOW PROCEDURE STATUS LIKE 'test_proc_1';
+
+# 4、存储过程的删除, 格式
+DROP PROCEDURE [IF EXISTS] 存储过程名;
+
+# 5、存储过程的删除, 案例
+DROP PROCEDURE IF EXISTS test_proc_1;
+```
+
+#### 5、存储过程的优缺点
+
+##### （1）优点
+
+- 提高```SQL```复用性，存储过程可以一次编译多次调用。
+- 安全性强，可以设置用户对存储过程的调用权限。
+- 减少网络传输。
+
+##### （2）缺点
+
+- 可移植性差，不能夸数据库移植，例如在```MySQL```、```Oracle```、```SQL Server```编写的存储过程，换成其他数据库时需要重新编写。
+- 调试困难，只有少数DBMS支持存储过程的调试。对于复杂的存储过程来说，开发和维护都不容易。
+- 版本控制很困难， 存储过程本身没有版本控制，迭代更新时比较麻烦。
+- 不适合高并发场景，存储过程会增加数据库压力，而高并发场景需要减少数据库压力，有时候还会采用分库分表的方式。
+
 
 
 ### 七、函数
 
+#### 1、函数简介
 
+- ```MySQL```支持自定义函数，定义好之后，调用方式与```MySQL```系统函数一样。
+
+#### 2、创建函数
+
+##### （1）格式
+
+```sql
+CREATE FUNCTION [IF NOT EXISTS] 函数名(参数名 参数类型, ...)
+RETURNS 返回值类型
+[characteristics...]
+BEGIN
+	# 函数体, 必须要有RETURN语句
+END ;
+
+# 1、函数的参数种类总是默认为IN, 不能为参数指定IN、OUT、INOUT修饰符
+# 2、RETURNS: 指明当前函数返回值的类型
+# 3、[characteristics...]: 指明当前函数的一些特征, 与存储过程的特征一致
+# 4、函数体中必须要有RETURN语句
+# 5、设置新的结束标记: 与存储过程一致
+# 6、注意: 如果创建函数出错, 开启设置: 允许创建函数
+SHOW GLOBAL VARIABLES LIKE '%log_bin_trust_function_creators%';
+SET GLOBAL log_bin_trust_function_creators = 1;
+```
+
+##### （2）函数体
+
+```sql
+# 1、如果函数体仅有一个语句, 则BEGIN和END可以省略
+
+# 2、函数中可以使用DECLARE声明变量, 格式
+DECLARE 变量名 变量类型 [DEFAULT 默认值];
+
+# 3、使用DECLARE声明变量, 案例
+DECLARE emp_sex INT(2) DEFAULT 0;
+
+# 4、为变量赋值, 格式
+SET 变量名 = 值;
+
+# 5、为变量赋值, 案例
+SET emp_sex = 1;
+
+# 6、查询结果赋值给变量, 格式
+SELECT 字段或结果 INTO 变量名 FROM 表名 [WHERE 条件];
+
+# 7、查询结果赋值给变量, 案例
+SELECT sex INTO emp_sex FROM employees WHERE employee_id = 100;
+
+# 8、函数体中还可以使用流程控制语句, 如IF、CASE、LOOP、WHILE、REPEAT等
+
+# 9、函数体中必须要有RETURN语句
+```
+
+##### （3）案例
+
+- 1、输入一个数字```n```，返回长度为```n```的随机字符串
+
+```sql
+DROP FUNCTION IF EXISTS rand_string;
+
+DELIMITER $$
+CREATE FUNCTION IF NOT EXISTS rand_string(n INT)
+	RETURNS VARCHAR(255)    # 该函数返回一个随机字符串
+BEGIN
+	DECLARE chars_str VARCHAR(100) DEFAULT 'abcdefghijklmopgrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	DECLARE return_str VARCHAR(255) DEFAULT '';
+	DECLARE i INT DEFAULT 0;
+	WHILE i <= n DO
+		SET return_str = CONCAT(return_str, SUBSTRING(chars_str, FLOOR(1 + RAND() * 52), 1));
+		SET i = i + 1;
+	END WHILE;
+	RETURN return_str;
+END $$
+DELIMITER ;
+```
+
+- 2、输入一个开始数字```from_num```，一个结束数字```to_num```，随机返回一个```from_num```与```to_num```之间的数字
+
+```sql
+DROP FUNCTION IF EXISTS rand_num;
+
+DELIMITER $$
+CREATE FUNCTION IF NOT EXISTS rand_num(from_num INT, to_num INT)
+	RETURNS INT(11)				# 该函数返回一个随机数字
+BEGIN
+	DECLARE i INT DEFAULT 0;
+	SET i = FLOOR(from_num + RAND() * (to_num - from_num + 1));
+	RETURN i;
+END $$
+DELIMITER ;
+```
+
+#### 3、调用函数
+
+```sql
+# 1、格式
+SELECT 函数名(参数1, ...);
+
+# 2、案例1
+SELECT rand_string(10) AS 随机字符串;
+
+# 3、案例2
+SELECT rand_num(1, 100) AS 随机数;
+```
+
+#### 4、查看和修改函数
+
+##### （1）查看
+
+```sql
+# 1、查看函数的创建信息, 格式
+SHOW CREATE FUNCTION 函数名;
+
+# 2、查看函数的创建信息, 案例
+SHOW CREATE FUNCTION rand_string;
+
+# 3、查看所有数据库中函数状态信息
+SHOW FUNCTION STATUS;
+
+# 4、查看指定数据库中函数状态信息
+SHOW FUNCTION STATUS WHERE db = 'mysql_test';
+
+# 5、查看指定函数的状态信息
+SHOW FUNCTION STATUS LIKE 'rand_string';
+
+# 6、从information_schema.Routines中查看函数信息, 格式
+SELECT * FROM information_schema.Routines WHERE ROUTINE_NAME = 函数名 [AND ROUTINE_TYPE = 'FUNCTION'];
+
+# 7、从information_schema.Routines中查看函数信息, 案例
+SELECT * FROM information_schema.Routines WHERE ROUTINE_NAME = 'rand_string' AND ROUTINE_TYPE = 'FUNCTION';
+```
+
+##### （2）修改
+
+```sql
+# 1、只能修改函数的特征, 不影响函数的功能, 格式
+ALTER FUNCTION 函数名 [characteristics...];
+
+# 2、案例
+ALTER FUNCTION rand_string
+SQL SECURITY INVOKER
+COMMENT '返回随机字符串';
+
+# 3、查看函数状态信息
+SHOW CREATE FUNCTION rand_string;
+
+# 4、删除函数, 格式
+DROP FUNCTION [IF EXISTS] 函数名;
+
+# 5、删除函数, 案例
+DROP FUNCTION IF EXISTS rand_string;
+```
+
+#### 5、存储过程和函数的区别
+
+|          | 关键字          | 调用语法 | 返回值          | 应用场景               |
+| -------- | --------------- | -------- | --------------- | ---------------------- |
+| 存储过程 | ```PROCEDURE``` | CALL     | 理解为0个或多个 | 一般用于更新           |
+| 函数     | ```FUNCTION```  | SELECT   | 只能是1个       | 一般用于查询结果并返回 |
+
+- 函数可以放在查询语句中，而存储过程不行。
+
+- 存储过程功能更加强大，可以执行对表的操作（如新建表、删除表等）和事务操作，而函数不具备这样的功能。
+
+  
 
 ### 八、窗口函数（```MySQL``` 8.0新特性）
 
