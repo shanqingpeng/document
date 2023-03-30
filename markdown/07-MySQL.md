@@ -1595,6 +1595,113 @@ DROP FUNCTION IF EXISTS rand_string;
 
 ### 八、窗口函数（```MySQL``` 8.0新特性）
 
+### 九、字符集与```SQL```规范
+
+#### 1、字符集
+
+##### （1）字符集和比较规则
+
+```sql
+# 1、查看MySQL支持的字符集
+SHOW CHARSET;
+SHOW CHARACTER SET;
+# (1) Default collation: 默认比较规则
+# (2) Maxlen: 最多用几个字节表示一个字符
+
+# 2、utf8 与 utf8mb4 的区别
+# (1) utf8: 即utf8mb3字符集, 使用1~3个字节表示一个字符
+# (2) utf8mb4: 使用1~4个字节表示一个字符, MySQL8.0及之后版本的默认字符集.
+
+# 3、查看MySQL支持的比较规则
+SHOW COLLATION;
+
+# 4、查看某个字符集对应的比较规则
+SHOW COLLATION LIKE 'gbk%';
+SHOW COLLATION LIKE 'utf8mb4%';
+
+# 5、比较规则后缀的含义
+# (1) _ai: accent insensitive    不区分重音
+# (2) _as: accent sensitive      区分重音
+# (3) _ci: case insensitive      不区分大小写
+# (4) _cs: case sensitive        区分大小写
+# (5) _bin: binary               以二进制方式比较
+```
+
+##### （2）查看和修改字符集
+
+```sql
+# 1、查看系统字符集
+SHOW VARIABLES LIKE '%character%';
+
+# 2、查看数据库字符集
+SHOW CREATE DATABASE mysql_test;
+
+# 3、查看数据表字符集
+SHOW CREATE TABLE employees;
+
+# 4、修改MySQL服务器字符集
+# (1) MySQL8.0及之后的版本, 默认字符集为utf8mb4, 一般情况下不需要修改
+# (2) MySQL5.7及之前的版本: 在my.cnf文件的 [mysqld] 下增加: character_set_server=utf8
+
+# 5、修改数据库字符集, 格式
+ALTER DATABASE 数据库名 CHARACTER SET 字符集名 [COLLATION 比较规则];
+
+# 6、修改数据库字符集, 案例
+ALTER DATABASE mysql_test CHARACTER SET 'utf8mb4' COLLATION 'utf8mb4_0900_ai_ci';
+
+# 7、修改数据表的字符集, 格式
+ALTER TABLE 表名 CONVERT TO CHARACTER SET 字符集名 [COLLATION 比较规则];
+
+# 8、修改数据表的字符集, 案例
+ALTER TABLE employees CONVERT TO CHARACTER SET 'utf8mb4' COLLATION 'utf8mb4_0900_ai_ci';
+```
+
+#### 2、```SQL```规范
+
+##### （1）Windows和Linux大小写区别
+
+- Windows环境默认情况下```SQL```语句不区分大小写的
+
+  ```sql
+  # 数据库名、表名、变量名、字段名、关键字、函数名: 都不区分大小写
+  ```
+
+- Linux环境默认```SQL```语句是区分大小写的
+
+  ```sql
+  # 1、数据库名、表名、变量名: 严格区分大小写
+  
+  # 2、字段名、关键字、函数名: 不区分大小写
+  ```
+
+- 通过查看系统参数，确定是否区分大小写
+
+  ```sql
+  SHOW VARIABLES LIKE '%lower_case_table_name%';
+  # (1) 变量值为 0, 表示区分大小写
+  
+  # (2) 变量值为 1, 表示不区分大小写, 创建的表、数据库都是以小写形式保存在磁盘上, 对于SQL语句都是转化为小写对表和数据库进行查找
+  
+  # (3) 变量值为 2, 创建的表和数据依据语句上格式存放, 凡是查找都是转化为小写进行
+  ```
+
+##### （2）```SQL```编写建议
+
+```sql
+# 1、关键字、函数名全部大写
+
+# 2、数据库名、表名、表别名、字段名、字段别名全部小写, SQL语句以分号结束
+
+# 3、案例：
+SELECT department_id AS 部门编号, AVG(salary) AS 平均工资 FROM mysql_test.employees GROUP BY department_id ORDER BY AVG(salary);
+```
+
+#### 3、```sql_mode```设置
+
+
+
+
+
 
 
 
