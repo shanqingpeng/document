@@ -1687,22 +1687,45 @@ ALTER TABLE employees CONVERT TO CHARACTER SET 'utf8mb4' COLLATION 'utf8mb4_0900
 
 ##### （2）```SQL```编写建议
 
-```sql
-# 1、关键字、函数名全部大写
+- 关键字、函数名全部大写
 
-# 2、数据库名、表名、表别名、字段名、字段别名全部小写, SQL语句以分号结束
+- 数据库名、表名、表别名、字段名、字段别名全部小写
 
-# 3、案例：
-SELECT department_id AS 部门编号, AVG(salary) AS 平均工资 FROM mysql_test.employees GROUP BY department_id ORDER BY AVG(salary);
-```
+-  ```SQL```语句以分号结束
 
-#### 3、```sql_mode```设置
+  ```sql
+  # 案例:
+  SELECT department_id AS 部门编号, AVG(salary) AS 平均工资 FROM mysql_test.employees GROUP BY department_id ORDER BY AVG(salary);
+  ```
+
+### 十 、```MySQL```逻辑架构
+
+#### 1、逻辑架构简介
+
+##### （1）服务器处理客户端请求
+
+- ```MySQL```是典型的C/S架构，服务器端程序使用的是```mysqld```
+- 实现的效果是：客户端向服务器发送一个段文本（```SQL```语句），服务器处理后返回给客户端一段文本（处理结果）
+
+##### （2）连接层
+
+- 客户端连接服务器。客户端与服务器经过3次握手后建立```TCP```连接。
+- 用户鉴权。当客户端发起建立连接请求后，```MySQL```服务器会对用户进行鉴权处理。
+- 安全管理。成功建立连接后，```MySQL```会根据用户的权限来判断用户具体可以执行哪些操作。
+
+##### （3）服务层
+
+##### （4）引擎层
+
+##### （5）存储层
 
 
 
 
 
+#### 2、```SQL```执行流程
 
 
 
+### 十一 、索引
 
