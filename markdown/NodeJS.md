@@ -533,6 +533,118 @@ exports.world = world;
 
 ### 九、包管理工具
 
+#### 1、包是什么
+
+- 包（package）是一组特定功能的源码集合
+
+#### 2、包管理工具是什么
+
+- 管理包的应用程序，包括对包进行```下载、安装、删除、上传```等操作
+- 借助包管理工具可以快速开发项目、提升开发效率
+- 包管理工具是一个通用的概念，很多编程语言都有包管理工具
+
+#### 3、常见的包管理工具
+
+- npm
+- yarn
+- cnpm
+
+#### 4、npm
+
+##### （1）npm简介
+
+- npm（Node Package Manager）：Node包管理器
+
+- npm是node.js官方内置的包管理器，安装node.js之后就自带了npm，无需另外进行安装
+- 安装node.js之后，使用命令```npm -v```可以查看npm版本
+
+##### （2）npm基本操作
+
+- 初始化包： ```npm init```
+  - 包名不能含有中文、大写字母
+  - 版本号格式为：```x.x.x```，x只能为数字
+  - 初始化完成后，会创建```package.json```文件
+  - 可以使用```npm init -y```或```npm init -yes```快速初始化包
+
+- 搜索包
+  - ```npm s/search 关键字```
+  - 网站搜索：https://www.npmjs.com/
+
+- 下载并安装包
+  - ```npm i/install 包名```
+  - 运行之后增加两个资源：
+    - 刚刚安装的包，在```node_modules```目录下
+    - ```package-lock.json```包的锁文件，用来锁定包的版本
+
+- 导入安装的npn包
+  - 使用```require(包名)```导入npm包，只需要且包名即可，无需写相对路径
+- 开发依赖和生产依赖
+  - 开发依赖：只在开发阶段使用到的包，包信息在```devDependencies```属性中
+    - 安装命令：```npm i -D 包名``` 或 ```npm i --save-dev 包名```
+  - 生产依赖：开发阶段和生产环境都会使用到的包，包信息在```dependencies```属性中
+    - 安装命令：```npm i -S 包名``` 或 ```npm i --save 包名```，如果安装时不写选项，默认是生产依赖
+
+- 安装全局依赖
+  - 安装全局依赖，不受工作目录的影响，在任何目录都能安装全局依赖
+  - 安装命令：```npm i -g 包名```
+  - 查看全局依赖的安装目录：```npm root -g```
+  - 不是所有的包都适合全局安装，只有全局工具类的包才能全局安装，需要查看包的官方文档确定
+
+##### （3）npm安装所有依赖
+
+- ```npm i/install```：根据```package.json```和```package-lock.json```文件中内容安装依赖包
+
+##### （4）安装指定版本的依赖
+
+- ```npm i/install 包名@版本号```
+  - 例如：```npm i jquery@1.11.2```
+
+##### （5）删除依赖
+
+- 删除局部依赖：```npm r/remove 包名```
+  - 例如：```npm r jquery```
+- 删除全局依赖：```npm r/remove -g 包名```
+  - 例如：```npm r -g nodemon```
+
+##### （6）配置命令别名
+
+- 可以再package.json的scripts属性中自定义一个别名，用于执行命令
+  - 如：```"serve": "node index.js"```
+- 配置完成后，可以通过使用别名来执行该命令
+  - 如：```npm run serve```
+
+- 如果配置的别名为start，则运行时可以省略```run```
+  - 如 ```npm start```
+
+- ```npm start``` 是一个常用的命令，一般用来启动项目
+- ```npm run``` 有自动向上查找的特性：即先查看当前目录package.json中是否有配置别名，如果没有则继续向上级目录查找，直到盘符根目录
+
+##### （7）配置淘宝镜像
+
+- 方式1：npm config set registry https://registry.npmmirror.com/
+- 方式2：使用```nrm```配置npm镜像地址
+  - 安装```nrm```：```npm i -g nrm```
+  - 配置淘宝镜像：```nrm use taobao```
+  - 切换回官方镜像：```nrm use npm```
+  - 查看当前镜像：```npm config list```
+
+#### 5、yarn
+
+#### 6、cnpm
+
+- cnpm是淘宝构建的```npmjs.com```依赖镜像，也称为淘宝镜像，网址是：https://npmmirror.com/
+- cnpm服务器部署在国内阿里云上，可以提高下载依赖的速度
+- 官方提供了一个全局工具包```cnpm```，操作命名与```npm```基本相同
+- 安装cnpm
+  - npm install -g cnpm --registry=https://registry.npmmirror.com
+- 操作命令
+  - cnpm init
+  - cnpm i 包名
+  - cnpm i
+  - cnpm r 包名
+
+
+
 ### 十、express框架
 
 ### 十一、MongoDB
