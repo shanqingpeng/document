@@ -630,22 +630,176 @@ exports.world = world;
 
 #### 5、yarn
 
+- yarn是有Facebook在2016年推出的JavaScript包管理工具，官网地址为：https://yarnpkg.com/
+- yarn的特点
+  - 下载包的速度超快
+  - 超级安全
+  - 超级可靠
+
+- yarn的安装
+
+  ```shell
+  # 可以使用npm安装yarn
+  npm i -g yarn
+  ```
+
+- yarn的常用命令
+
+  ```shell
+  yarn init [-y]        # yarn初始化 [默认]
+  
+  yarn add 包名          # 安装生产依赖
+  yarn add less --dev   # 安装开发依赖
+  yarn global add 包名   # 安装全局依赖
+  
+  yarn remove 包名            # 移除依赖
+  yarn global remove 包名     # 移除全局依赖
+  
+  yarn                       # 安装所有依赖
+  yarn <别名>                 # 运行别名命令, 不需要添加run
+  
+  yarn global bin            # 查看全局依赖的安装位置
+  ```
+
 #### 6、cnpm
 
 - cnpm是淘宝构建的```npmjs.com```依赖镜像，也称为淘宝镜像，网址是：https://npmmirror.com/
 - cnpm服务器部署在国内阿里云上，可以提高下载依赖的速度
 - 官方提供了一个全局工具包```cnpm```，操作命名与```npm```基本相同
 - 安装cnpm
-  - npm install -g cnpm --registry=https://registry.npmmirror.com
+  - ```npm install -g cnpm --registry=https://registry.npmmirror.com```
 - 操作命令
-  - cnpm init
-  - cnpm i 包名
-  - cnpm i
-  - cnpm r 包名
+  - ```cnpm init```
+  - ```cnpm i 包名```
+  - ```cnpm i```
+  - ```cnpm r 包名```
+
+#### 7、包管理工具的选择
+
+- 个人项目：建议选择npm或者yarn
+- 公司项目：根据公司选择，判断用的是哪个包管理工具
+  - npm的锁文件为：```package-lock.json```
+  - yarn的锁文件为：```yarn.lock```
+- 包管理工具最好只使用一种，不要混合使用
+
+#### 8、NVM
+
+- NVM全称Node Version Manager，即node版本管理器，用于切换node.js的版本
+- 安装NVM
+  - 地址：https://github.com/coreybutler/nvm-windows/releases
+  - 步骤：下载并安装```nvm-setup.exe```即可
+
+- 常用命令：
+
+  ```shell
+  # 1、可用的node.js版本列表
+  nvm list available
+  
+  # 2、已安装的node.js版本列表
+  nvm list
+  
+  # 3、安装指定版本的node.js
+  nvm install 版本号
+  
+  # 4、安装最新版的node.js
+  nvm install latest
+  
+  # 5、删除指定版本的node.js
+  nvm uninstall 版本号
+  
+  # 6、切换node.js版本
+  nvm use 版本号
+  ```
+
+#### 9、解决Vscode终端PowerShell报错问题
+
+##### （1）打开Windows PowerShell
+
+- 以管理员身份打开
+
+##### （2）修改Windows执行策略
+
+```shell
+# 1、输入命令
+set-ExecutionPolicy remoteSigned
+
+# 2、选择: [A]全是
+```
+
+##### （3）重启VSCode
 
 
 
 ### 十、express框架
+
+#### 1、express简介
+
+- express是一个基于Node.js平台的极简、灵活的Web应用开发框架
+- 官网地址：https://www.expressjs.com.cn/
+
+#### 2、express的使用
+
+- 安装：```npm i express```
+
+- 使用：
+
+  ```javascript
+  // 1、导入express
+  const express = require('express');
+  
+  // 2、创建应用程序对象
+  const app = express();
+  
+  // 3、创建路由
+  app.get('/home', (req, res) => {
+      res.end('Hello Express');
+  });
+  
+  // 4、监听端口, 启动服务
+  app.listen(8081, () => {
+      console.log('Node服务器已启动, 端口号: 8081');
+  });
+  ```
+
+  
+
+#### 3、express路由
+
+- 路由就是应用程序如何响应客户端特定URL的请求
+- 路由三要素：
+  - 请求方式
+  - 请求路径
+  - 回调函数
+
+- express提供了使用路由的方法：
+
+  ```javascript
+  // 1、导入express
+  const express = require('express');
+  
+  // 2、创建应用程序对象
+  const app = express();
+  
+  // 3、路由使用格式
+  app.<method>(path, callback);
+  
+  // 4、路由案例1
+  app.get('/', (req, res) => {
+      res.end('这是首页');
+  });
+  
+  // 5、路由案例2
+  app.post('/login', (req, res) => {
+      res.end('这是登录页');
+  });
+  
+  // 6、监听端口, 启动服务
+  app.listen(8081, () => {
+      console.log('Node服务器已启动, 端口号: 8081');
+  });
+  ```
+
+  
 
 ### 十一、MongoDB
 
