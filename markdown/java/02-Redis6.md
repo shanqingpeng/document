@@ -229,9 +229,293 @@
 
 #### 3、Set
 
+- Set与List的功能类似，都是一个键对应多个值：```key value1 value2 value3 ...```
+
+- 不同之处：Set中的元素不能重复，且Set提供了接口判断某个元素是否在Set中，这是List没有的
+
+- 常用命令
+
+  ```shell
+  # 1、添加元素到Set中, 已经存在的元素将不会重复添加
+  sadd k3 v31 v32 v33
+  (integer) 3
+  
+  # 2、查看Set中的所有元素
+  smembers k3
+  1) "v33"
+  2) "v32"
+  3) "v31"
+  
+  # 3、判断Set中是否存在某个元素（返回0表示不存在，返回1表示存在）
+  sismember k3 v2
+  (integer) 0
+  
+  sismember k3 v33
+  (integer) 1
+  
+  # 4、查看Set中元素个数
+  scard k3
+  (integer) 3
+  
+  # 5、移除Set中的某个元素（返回1表示移除成功，返回0表示移除失败）
+  srem k3 v33
+  (integer) 1
+  
+  smembers k3
+  1) "v32"
+  2) "v31"
+  
+  # 6、随机从Set中弹出一个元素（如果元素全部被弹出，则Set的key也将被移除）
+  spop k3
+  "v32"
+  spop k3
+  "v31"
+  
+  # 7、随机查看集合中n个元素（不会删除Set中的元素）
+  sadd k3 v35 v36 v37 v38
+  (integer) 4
+  
+  srandmember k3 2
+  1) "v37"
+  2) "v38"
+  
+  srandmember k3 2
+  1) "v36"
+  2) "v38"
+  
+  # 8、从一个Set中移动一个元素，到另一个Set中
+  sadd k4 v41 v42 v43
+  (integer) 3
+  
+  smembers k3
+  1) "v36"
+  2) "v35"
+  3) "v38"
+  4) "v37"
+  
+  smembers k4
+  1) "v43"
+  2) "v41"
+  3) "v42"
+  
+  # 把k3中的v36元素，移动到k4中
+  smove k3 k4 v36
+  (integer) 1
+  
+  smembers k3
+  1) "v35"
+  2) "v38"
+  3) "v37"
+  
+  smembers k4
+  1) "v36"
+  2) "v43"
+  3) "v41"
+  4) "v42"
+  
+  # 9、查看多个Set的交集（同时在多个集合中的元素）
+  sinter k3 k4
+  (empty array)
+  
+  # 10、查看多个Set的并集（多个集合的元素合并）
+  sunion k3 k4
+  1) "v37"
+  2) "v38"
+  3) "v36"
+  4) "v35"
+  5) "v42"
+  6) "v43"
+  7) "v41"
+  
+  # 11、查看多个Set的差集（在key1中，但是不在key2中的元素）
+  sdiff k3 k4
+  1) "v35"
+  2) "v37"
+  3) "v38"
+  ```
+
 #### 4、Hash
 
+- Redis中Hash是一个键值对的集合，表现形式为：一个```key```对应多个```field```和```value```
+
+- 这种结构特别适合存储对象，类似于Java中```Map<String, Object>```
+
+- 常用命令
+
+  ```shell
+  # 1、添加一个hash数据, 如果字段已存在, 则会覆盖原值
+  # (1) 设置单个字段
+  hset user id 1001
+  (integer) 1
+  
+  hset user name zhangsan
+  (integer) 1
+  
+  hset user age 18
+  (integer) 1
+  
+  # (2) 一次性设置多个字段
+  hset user id 1001 name zhangsan age 18
+  (integer) 3
+  
+  # 2、添加一个hash数据, 仅当字段不存在时, 才会设置其值, 否则不设置
+  # (1) user的id字段已存在, 设置失败
+  hsetnx user id 1111
+  (integer) 0
+  
+  hvals user
+  1) "1001"
+  2) "zhangsan"
+  3) "18"
+  
+  # (2) user不存在gender字段, 设置成功
+  hsetnx user gender male
+  (integer) 1
+  
+  hvals user
+  1) "1001"
+  2) "zhangsan"
+  3) "18"
+  4) "male"
+  
+  # 3、从hash取出一个字段的值
+  hget user id
+  "1001"
+  
+  hget user name
+  "zhangsan"
+  
+  # 4、检查hash中是否存在某个字段, 返回0表示不存在, 返回1表示存在
+  hexists user id
+  (integer) 1
+  
+  hexists user salary
+  (integer) 0
+  
+  # 5、列出hash中所有的字段
+  hkeys user
+  1) "id"
+  2) "name"
+  3) "age"
+  
+  # 6、列出hash中所有的值
+  hvals user
+  1) "1002"
+  2) "zhangsan"
+  3) "18"
+  
+  # 7、为hash中某个字段的值增加/减少指定数值, 返回修改后的值
+  # (1) 把user的id字段的值增加22
+  hincrby user id 22
+  (integer) 1024
+  
+  # (2)把user的id字段的值减少1
+  hincrby user id -1
+  (integer) 1023
+  ```
+
+- 数据结构
+
+  - hash底层数据结构有两种：```ziplist```（压缩列表）、```hashtable```（哈希表）
+  - 当hash中的```field-value```长度较短且个数较少时，使用```ziplist```，否则使用```hashtable```
+
 #### 4、Zset
+
+- Zset为```有序集合```，与普通集合Set相似，Zset中没有重复元素
+
+- 不同之处：
+
+  - Zset的每个元素都关联了一个评分（```score```），用于对Zset中的元素从低到高进行排序
+  - Zset中元素不能重复，但是```score```可以重复
+
+- 常用命令
+
+  ```shell
+  # 1、添加元素
+  # 格式: zadd key score1 value1 score2 value2 [...]
+  zadd student 1 zhangsan 2 lisi 6 wangwu 5 zhaoliu 7 mike
+  (integer) 5
+  
+  # 2、查看Zset中元素的值
+  # (1) 仅查看元素
+  zrange student 0 -1
+  1) "zhangsan"
+  2) "lisi"
+  3) "zhaoliu"
+  4) "wangwu"
+  5) "mike"
+  
+  # (2) 查看元素, 带上分数
+  zrange student 0 -1 withscores
+   1) "zhangsan"
+   2) "1"
+   3) "lisi"
+   4) "2"
+   5) "zhaoliu"
+   6) "5"
+   7) "wangwu"
+   8) "6"
+   9) "mike"
+  10) "7"
+  
+  # 3、按照score范围查找Zset中的元素
+  # 查找评分在1-3分的元素, 带上分数
+  zrangebyscore student 1 3 withscores
+  1) "zhangsan"
+  2) "1"
+  3) "lisi"
+  4) "2"
+  
+  # 4、按照score范围查找Zset中的元素, 倒序排列
+  # 查找评分在5-1分的元素, 倒序排列, 带上分数
+  zrevrangebyscore student 5 1 withscores
+  1) "zhaoliu"
+  2) "5"
+  3) "lisi"
+  4) "2"
+  5) "zhangsan"
+  6) "1"
+  
+  # 5、增加/减少Zset中元素关联的score, 返回修改后的score
+  # (1) 使mike的score增加1
+  zincrby student 1 mike
+  "8"
+  
+  # (2) 使mike的score减少2
+  zincrby student -2 mike
+  "6"
+  
+  # 6、移除Zset中指定元素
+  zrem student mike
+  (integer) 1
+  
+  zrange student 0 -1 withscores
+  1) "zhangsan"
+  2) "1"
+  3) "lisi"
+  4) "2"
+  5) "zhaoliu"
+  6) "5"
+  7) "wangwu"
+  8) "6"
+  
+  # 7、统计Zset中指定score范围内的元素个数
+  zcount student 1 6
+  (integer) 4
+  
+  # 8、查询指定元素在Zset中的排名(从0开始), 如果元素不存在, 则返回null
+  zrank student mike
+  (nil)
+  
+  zrank student wangwu
+  (integer) 3
+  ```
+
+- 数据结构
+
+  - Zset底层使用了两个数据结构：```hash```、```跳跃表```
+  - hash的作用是关联元素（```member```）和评分（```score```），保证元素不重复，且通过元素可以找到评分
+  - 跳跃表的作用是给元素排序，根据评分获取元素列表
 
 #### 5、Bitmaps
 
