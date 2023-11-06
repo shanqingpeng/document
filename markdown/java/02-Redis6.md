@@ -1,6 +1,209 @@
 ### 一、NoSQL简介
 
+#### 1、NoSQL是什么
+
+- NoSQL=Not Only SQL，意为不仅仅是SQL，泛指```非关系型数据库```
+- NoSQL不遵循SQL标准，即不能使用SQL语句操作数据库
+- 不支持ACID
+- 由于数据都存在内存中，性能非常好
+
+#### 2、NoSQL有哪些
+
+- 列式数据库
+  - 数据存储以```列```（column）为单位，例如：Hbase、Cassandra等
+  - 特点：快速查询、高扩展性、易于实现分布式扩展
+  - 应用场景：在分布式文件系统之上，提供支持随机读写的分布式数据存储
+- 文档数据库
+  - 每一行数据组织为一个文档，以文档为单位存储数据，例如：MongoDB、ElasticSearch等
+  - 特点：数据模型无需事先定义
+  - 应用场景：非强实物需求的web应用
+- 键值数据库
+  - 以键值对的形式存储数据，例如：```Redis```、DynanoDB等
+  - 特点：查询数据极快
+  - 应用场景：内容缓存、高并发、高负载场景
+- 图形数据库
+  - 以图形的方式存储数据，例如：Neo4J、Giraph等
+  - 特点：用图形表示现实世界的关系很直接、自然、易于建模，且可以很高效的查询关联的数据
+  - 应用场景：社交网络、推荐系统、关系图谱等
+
+#### 3、NoSQL有什么用
+
+- 配合关系型数据库做数据缓存、降低数据库IO压力
+- 分布式系统中，可以共享session
+- 可以做排行榜、手机验证码、计数器、秒杀、去重、构建队列等
+
+
+
 ### 二、Redis6简介和安装
+
+#### 1、Redis简介
+
+- Redis是一个开源的键值类型的数据库
+- Redis支持多种数据类型：string、list、set、hash、zset等
+- Redis中的数据都存储在内存中
+- Redis会定期把数据持久化到磁盘中
+
+#### 2、安装Redis
+
+- 安装gcc（已安装则跳过）
+
+  ```shell
+  # 1、安装gcc
+  yum install gcc
+  
+  # 2、查看gcc版本
+  gcc --version
+  gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44)
+  Copyright © 2015 Free Software Foundation, Inc.
+  本程序是自由软件；请参看源代码的版权声明。本软件没有任何担保；
+  包括没有适销性和某一专用目的下的适用性担保。
+  ```
+
+- 下载Redis安装包（以6.2.1为例）
+
+  ```shell
+  [root@localhost opt]# pwd
+  /opt
+  [root@localhost opt]# ls -l
+  -rw-r--r--. 1 root root 2438367 10月 14 00:25 redis-6.2.1.tar.gz
+  drwxr-xr-x. 2 root root       6 10月 31 2018 rh
+  ```
+
+- 解压安装包
+
+  ```shell
+  [root@localhost opt]# tar -zxvf redis-6.2.1.tar.gz
+  
+  # 解压后查看目录下文件，多了一个redis-6.2.1目录
+  [root@localhost opt]# ls -l
+  总用量 2388
+  drwxrwxr-x. 7 root root    4096 3月   2 2021 redis-6.2.1
+  -rw-r--r--. 1 root root 2438367 10月 14 00:25 redis-6.2.1.tar.gz
+  drwxr-xr-x. 2 root root       6 10月 31 2018 rh
+  
+  ```
+
+- 进入解压后的目录，执行```make```命令（编译）
+
+  ```shell
+  [root@localhost opt]# cd redis-6.2.1/
+  [root@localhost redis-6.2.1]# make
+  ```
+
+- ```如果执行make报错```
+
+  ```shell
+  # "jemalloc/jemalloc.h：没有那个文件或目录"
+  # 解决方法: 在redis-6.2.1目录下执行make distclean命令
+  [root@localhost redis-6.2.1]# make distclean
+  
+  # 完成后，再次执行make命令
+  [root@localhost redis-6.2.1]# make
+  ```
+
+- 执行make install命令
+
+  ```shell
+  [root@localhost redis-6.2.1]# make install
+  ```
+
+- 安装后的信息
+
+  ```shell
+  # Redis默认安装目录
+  /usr/local/bin
+  
+  # 查看安装目录
+  [root@localhost redis-6.2.1]# cd /usr/local/bin/
+  [root@localhost bin]# ls -l
+  总用量 18848
+  -rw-r--r--. 1 root root     305 11月  6 14:21 dump.rdb
+  -rwxr-xr-x. 1 root root 4833352 10月 14 00:35 redis-benchmark
+  lrwxrwxrwx. 1 root root      12 10月 14 00:35 redis-check-aof -> redis-server
+  lrwxrwxrwx. 1 root root      12 10月 14 00:35 redis-check-rdb -> redis-server
+  -rwxr-xr-x. 1 root root 5003368 10月 14 00:35 redis-cli
+  lrwxrwxrwx. 1 root root      12 10月 14 00:35 redis-sentinel -> redis-server
+  -rwxr-xr-x. 1 root root 9450208 10月 14 00:35 redis-server
+  [root@localhost bin]# 
+  
+  # Redis服务端启动：前台启动（不推荐）
+  [root@localhost bin]# redis-server
+  
+  # Redis服务端启动：后台启动（推荐）
+  # 1、拷贝一份Redis配置文件到 /etc/目录下
+  [root@localhost bin]# cp /opt/redis.conf /etc/
+  
+  # 2、编辑/ect/redis.conf
+  daemonize no 改为 yes （允许后台启动）
+  bind 127.0.0.1 改为 0.0.0.0（允许其他主机连接Redis）
+  
+  # 3、启动Redis服务端
+  [root@localhost bin]# redis-server /etc/redis.conf
+  
+  # 4、查看Redis进程是否已启动
+  [root@localhost bin]# ps -ef | grep redis
+  root      1231     1  0 14:27 ?        00:00:11 /usr/local/bin/redis-server 0.0.0.0:6379
+  root      3031  1744  0 15:39 pts/1    00:00:00 grep --color=auto redis
+  
+  # 5、连接Redis客户端，并测试连接
+  # (1) 单实例，默认6379端口
+  [root@localhost bin]# redis-cli 
+  127.0.0.1:6379> ping
+  PONG
+  
+  # (2) 多实例，指定端口连接
+  [root@localhost bin]# redis-cli -p 6379
+  127.0.0.1:6379> ping
+  PONG
+  
+  # 6、关闭Redis服务端
+  # (1)方式1
+  [root@localhost bin]# redis-cli shutdown
+  
+  # (2)方式2：连接Redis之后再关闭
+  [root@localhost bin]# redis-cli 
+  127.0.0.1:6379> shutdown
+  not connected> 
+  
+  # (3)方式3：多实例，指定端口关闭
+  [root@localhost bin]# redis-cli -p 6379 shutdown
+  ```
+
+#### 3、Redis开机自启
+
+- 新建```redis.service```文件
+
+```shell
+# 1、进入/usr/lib/systemd/system目录
+[root@localhost bin]# cd /usr/lib/systemd/system
+
+# 2、新建redis.service文件，并填入以下内容
+[Unit]
+Description=The redis-server Process Manager
+After=syslog.target network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/redis_6379.pid
+# 启动Redis服务端命令, 根据Redis安装目录和配置文件目录填入
+ExecStart=/usr/local/bin/redis-server /etc/redis.conf
+ExecReload=/bin/kill -USR2 $MAINPID
+ExecStop=/bin/kill -SIGINT $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+
+# 3、重新加载服务文件
+[root@localhost system]# systemctl daemon-reload
+
+# 4、启动Redis服务
+[root@localhost system]# systemctl start redis.service
+
+# 5、设置Redis服务开机自启
+[root@localhost system]# systemctl enable redis.service
+```
+
+
 
 ### 三、Redis6数据类型
 
