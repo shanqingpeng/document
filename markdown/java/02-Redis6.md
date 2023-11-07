@@ -730,6 +730,183 @@ WantedBy=multi-user.target
 
 ### 四、Redis6配置文件
 
+#### 1、UNITS
+
+- 单位部分，定义一些内存单位，只支持字节（byte）
+- 单位大小写不敏感，即```1GB、1Gb、1gB```都是一样的
+
+#### 2、INCLUDES
+
+- 包含部分，导入一些其他配置文件，如公共的配置内容等
+
+#### 3、NETWORK
+
+##### bind
+
+```shell
+# (1) bind 指定Redis服务端可以接受哪些主机发送的请求, 默认是本机127.0.0.1
+# (2) 如果想接收所有主机发送的请求，可以把bind这一行注释掉
+bind 127.0.0.1
+```
+
+##### protected-mode
+
+```shell
+# (1) 保护模式, 默认为yes
+# (2) 如果开启保护模式，没有指定bind且没有设置密码，那么Redis服务端只能接收本机和Unix domain socket的请求
+# (3) 如果确认想通过其他主机访问Redis，可以关闭保护模式
+```
+
+##### port
+
+```shell
+# (1) port 端口号, 默认为6379
+# (2) 指定Redis服务端接收请求的端口号, 如果指定为0, Redis不会监听TCP socket
+```
+
+##### tcp-backlog
+
+```shell
+# (1) tcp-backlog 指定已连接队列的大小(客户端连接完成TCP3次握手后会进入已连接队列)
+# (2) 高并发环境下, 如果出现客户端连接缓慢, 需要把tcp-backlog的值调高
+# (3) 默认情况下, Linux内核会截断tcp-backlog, 为了达到调高后的效果,
+#  需要同时调高 /proc/sys/net/core/somaxconn 和 /proc/sys/net/ipv4/tcp_max_syn_backlog 这两个参数的值
+
+# 步骤: 
+# 1> 把这两个Linux内核参数写入/etc/sysctl.conf文件里面
+net.ipv4.tcp_max_syn_backlog = 1024
+net.core.somaxconn = 1024
+# 2> 执行sysctl -p命令, 让配置文件生效
+# 3> 查看参数修改后的参数值
+[root@localhost etc]# cat /proc/sys/net/core/somaxconn
+1024
+[root@localhost etc]# cat /proc/sys/net/ipv4/tcp_max_syn_backlog
+1024
+# 4> 此时可以把tcp-backlog的值也改为1024, 重启Redis后生效
+# 否则, 只修改tcp-backlog的情况下, tcp-backlog的实际最大值不会超过somaxconn
+```
+
+##### timeout
+
+```shell
+# (1) timeout 客户端连接超时时间, 单位: 秒
+# (2) 一个客户端空闲timeout秒之后, 连接会被关闭, 0表示不超时
+```
+
+##### tcp-keepalive
+
+```shell
+# (1) tcp-keepalive tcp连接心跳检测周期, 单位: 秒
+# (2) 仅对Linux系统生效, 其他系统取决于内核配置
+# (3) Redis服务端定期给客户端发送心跳检测的周期，如果为0, 则不会进行心跳检测
+# (4) 关闭连接需要两倍的时间
+```
+
+#### 4、GENERAL
+
+##### daemonize
+
+```shell
+# (1) Redis是否允许后台运行, yes表示允许, no表示不允许
+# (2) 默认值为no, 一般建议改为yes
+# (3) 如果Redis在后台运行, 则会写入一个pid文件/var/run/redis.pid
+# (4) 如果supervised为upstart或者systemd, 这个参数没有影响(即不起作用)
+```
+
+##### pidfile
+
+```shell
+# (1) 指定pid文件名称已经存放目录
+# (2) 如果指定了pidfile, Redis会在启动时创建pid文件, 关闭时删除pid文件
+# (3) 如果Redis不是在后台运行, 且没有指定pidfile, 则不会创建pid文件
+# (4) 如果Redis是在后台运行, 即使没有指定pidfile, 默认为/var/run/redis.pid
+# (5) 如果Redis不能创建pid文件, 也不会有什么坏事发生, Redis会正常启动
+# (6) 在现代Linux系统上, 使用/var/run/redis.pid更符合标准, 应该这样使用
+```
+
+##### loglevel
+
+```shell
+# (1) 指定日志级别, 可以是以下之一
+# (2) debug 很多信息, 对开发和测试环境有用
+# (3) verbose 很多有用的信息, 但是没有debug级别信息多
+# (4) notice 信息量适中, 比较适合生产环境
+# (5) warning 只记录一些重要的信息
+```
+
+##### logfile
+
+```shell
+# (1) 指定日志文件
+# (2) 如果指定为空字符串, Redis会把日志记录到标准输出设备
+# (3) 如果Redis后台运行, 使用标准输出设备记录日志, 日志会被发送到/dev/null目录
+```
+
+##### databases
+
+```shell
+# (1) 设置数据库数量
+# (2) 默认数据库是0号库
+# (3) 连接上Redis后, 可以使用select dbid切换数据库, dbid为数据库编号, 范围是: 0 到 databases - 1
+```
+
+#### 5、SECURITY
+
+##### requirepass
+
+```shell
+# (1) 为默认用户设置密码
+# (2) 设置密码后, 一般情况下, 客户端需要通过密码进行身份验证
+# (3) requirepass与aclfile和ACL加载命令不兼容, 他们会导致requirepass失效
+```
+
+#### 6、CLIENTS
+
+##### maxclients
+
+```shell
+# (1) 设置同一时间客户端连接的最大数量
+# (2) 默认为10000个客户端
+# (3) 一旦达到连接最大数, Redis就会关闭所有新的连接, 并且发送一个错误信息: max number of clients reached
+```
+
+#### 7、MEMORY MANAGEMENT
+
+##### maxmemory
+
+```shell
+# (1) 设置Redis可以使用内存的最大限制, 单位: byte
+# (2) 一旦使用内存达到最大限制, Redis会根据maxmemory-policy指定的策略移除key
+# (3) 如果Redis无法移除key或者maxmemory-policy设置为noeviction, Redis会针对那些需要使用内存的命令返回错误信息, 如set、lpush等
+# 而对于只读的命令, 则会继续正常返回, 如get
+# (4) 如果Redis做了主从复制, 那么建议你设置一个比较低maxmemory, 以便在系统上留出一些内存给复制Redis的输出缓冲区,
+# (但是如果maxmemory-policy策略是noeviction, 就不需要这样做)
+```
+
+##### maxmemory-policy
+
+```shell
+# (1) 当使用内存达到最大限制时, 选择Redis移除key的策略, 默认是noeviction
+# (2) volatile-lru 使用类似于LRU算法, 只针对设置了过期时间的key (最近最少使用)
+# (3) allkeys-lru 使用类似于LRU算法, 针对所有的key
+# (4) volatile-lfu 使用类似于LFU算法, 只针对设置了过期时间的key (最近最不常用)
+# (5) allkeys-lfu 使用类似于LFU算法, 针对所有的key
+# (6) volatile-random 随机移除一个key, 只针对设置了过期时间的key
+# (7) allkeys-random 随机移除一个key, 针对所有的key
+# (8) volatile-ttl 移除一个距离过期时间最近的key (即ttl值最小的)
+# (9) noeviction 不移除任何key, 只针对写操作返回一个错误信息
+# (10) 使用上面这些策略, 如果找不到key可以移除, Redis针对写操作会返回一个错误信息: 要求使用更对内存
+```
+
+##### maxmemory-samples
+
+```shell
+# (1) 设置移除key时的样本数量, 默认为5
+# (2) Redis的LRU、LFU和最小TTL算法并不是特别精确的算法, 而是近似的算法 (为了节省内存), 所以可以调整算法的速度或者精确度
+# (3) 默认情况下, Redis会检查5个key并挑选出其中最近最少使用的一个
+# (4) 默认5个样本就可以产生足够多的好结果。10个样本就与真正的LRU算法非常接近了,但是会消耗更对的CPU, 3个样本速度更快, 但是不准确
+```
+
 ### 五、Redis6发布与订阅
 
 ### 六、Jedis
